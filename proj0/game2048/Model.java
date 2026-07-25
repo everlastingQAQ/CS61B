@@ -137,7 +137,13 @@ public class Model extends Observable {
      *  Empty spaces are stored as null.
      * */
     public static boolean emptySpaceExists(Board b) {
-        // TODO: Fill in this function.
+        for (int i = 0; i < b.size(); i++) {
+            for (int j = 0; j < b.size(); j++) {
+                if (b.tile(i, j) == null) {
+                    return true;
+                }
+            }
+        }
         return false;
     }
 
@@ -147,7 +153,45 @@ public class Model extends Observable {
      * given a Tile object t, we get its value with t.value().
      */
     public static boolean maxTileExists(Board b) {
-        // TODO: Fill in this function.
+        for (int i = 0; i < b.size(); i++) {
+            for (int j = 0; j < b.size(); j++) {
+                if (b.tile(i, j) == null) continue;
+                int val = b.tile(i, j).value();
+                if (val == MAX_PIECE) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /* Return true if index is valid */
+    public static boolean validIndex (Board b, int row, int col) {
+        if (row < b.size() && row >= 0 && col < b.size() && col >= 0) {
+            return true;
+        }
+        return false;
+    }
+
+    /* Return true if tile is valid */
+    public static boolean validTile (Board b, int row, int col) {
+        if (b.tile(row, col) == null) {
+            return false;
+        }
+        return true;
+    }
+
+    /* Check two tiles are equal or not */
+    public static boolean equalValue (Board b, int row1, int col1, int row2, int col2) {
+        if (!validIndex(b, row1, col1) || !validIndex(b, row2, col2)) {
+            return false;
+        }
+        if (!validTile(b, row1, col1) || !validTile(b, row2, col2)) {
+            return false;
+        }
+        if (b.tile(row1, col1).value() == b.tile(row2, col2).value()) {
+            return true;
+        }
         return false;
     }
 
@@ -158,7 +202,17 @@ public class Model extends Observable {
      * 2. There are two adjacent tiles with the same value.
      */
     public static boolean atLeastOneMoveExists(Board b) {
-        // TODO: Fill in this function.
+        if (emptySpaceExists(b)) {
+            return true;
+        }
+        for (int i = 0; i < b.size(); i++) {
+            for (int j = 0; j < b.size(); j++) {
+                if (equalValue(b, i, j, i + 1, j)) return true;
+                if (equalValue(b, i, j, i - 1, j)) return true;
+                if (equalValue(b, i, j, i, j + 1)) return true;
+                if (equalValue(b, i, j, i, j - 1)) return true;
+            }
+        }
         return false;
     }
 
