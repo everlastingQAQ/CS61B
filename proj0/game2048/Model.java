@@ -94,6 +94,54 @@ public class Model extends Observable {
         setChanged();
     }
 
+    public boolean tiltOneColumn (int col) {
+        int maxRow = board.size();
+
+        int previousValue = 0;
+        int previousRowNum = -1;
+        int previousRowNull = -1;
+
+        boolean needTilt = false;
+        boolean Moved = false;
+
+        for (int i = maxRow - 1; i >= 0; i--) {
+            Tile currentTile = board.tile(col, i);
+            if (currentTile == null) {
+                if (previousRowNull == -1) {
+                    previousRowNull = i;
+                }
+                needTilt = true;
+                continue;
+            }
+
+            int currentValue = currentTile.value();
+
+            if (currentValue == previousValue) {
+                board.move(col, previousRowNum, currentTile);
+                previousValue = 0;
+
+                previousRowNull = previousRowNum - 1;
+                previousRowNum = -1;
+                needTilt = true;
+                Moved = true;
+
+                score += 2 * currentValue;
+            }else {
+                if (needTilt) {
+                    board.move(col, previousRowNull, currentTile);
+                    previousRowNum = previousRowNull;
+                    previousRowNull = previousRowNull - 1;
+                    Moved = true;
+                }else {
+                    previousRowNum = i;
+                }
+                previousValue = currentValue;
+            }
+
+        }
+        return Moved;
+    }
+
     /** Tilt the board toward SIDE. Return true iff this changes the board.
      *
      * 1. If two Tile objects are adjacent in the direction of motion and have
@@ -110,7 +158,16 @@ public class Model extends Observable {
         boolean changed;
         changed = false;
 
-        // TODO: Modify this.board (and perhaps this.score) to account
+        board.setViewingPerspective(side);
+        int maxColumn = board.size();
+
+        for (int j = 0; j < maxColumn; j++) {
+            if (tiltOneColumn(j)) {
+                changed = true;
+            }
+        }
+
+        board.setViewingPerspective(Side.NORTH);
         // for the tilt to the Side SIDE. If the board changed, set the
         // changed local variable to true.
 
