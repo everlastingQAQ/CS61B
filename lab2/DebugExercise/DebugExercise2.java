@@ -6,15 +6,15 @@ package DebugExercise;
  */
 public class DebugExercise2 {
     /** Returns the max of a and b. Do not step into this function. */
-    public static int max(int a, int b) {
-        int w = (b - a) >> 31;
-        /* If you're stepping into this function, click the
-           step out button because you're not going to learn anything. */
-        int z = ~(b - a) >> 31;
-
-        int max = b & w | a & z;
-        return max;
-    }
+//    public static int max(int a, int b) {
+//        int w = (b - a) >> 31;
+//        /* If you're stepping into this function, click the
+//           step out button because you're not going to learn anything. */
+//        int z = ~(b - a) >> 31;
+//
+//        int max = b & w | a & z;
+//        return max;
+//    }
 
 
     /** Returns the sum of a and b. Do not step into this function. */
@@ -35,13 +35,9 @@ public class DebugExercise2 {
         return xor;
     }
 
-    public static int myMax(int a, int b) {
-        return a > b ? a : b;
+    public static int max(int a, int b) {
+        return Math.max(a, b);
     }
-
-//    public static int myAdd(int a, int b) {
-//        return a > b ? a : b;
-//    }
 
     /** Returns a new array where entry i is the max of
      * a[i] and b[i]. For example, if a = {1, -10, 3}
@@ -54,7 +50,7 @@ public class DebugExercise2 {
         }
         int[] returnArray = new int[a.length];
         for (int i = 0; i < a.length; i += 1) {
-            int biggerValue = myMax(a[i], b[i]);
+            int biggerValue = max(a[i], b[i]);
             returnArray[i] = biggerValue;
         }
 
