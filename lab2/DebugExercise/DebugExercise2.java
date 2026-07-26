@@ -35,6 +35,14 @@ public class DebugExercise2 {
         return xor;
     }
 
+    public static int myMax(int a, int b) {
+        return a > b ? a : b;
+    }
+
+//    public static int myAdd(int a, int b) {
+//        return a > b ? a : b;
+//    }
+
     /** Returns a new array where entry i is the max of
      * a[i] and b[i]. For example, if a = {1, -10, 3}
      * and b = {0, 20, 5}, this function will return {1, 20, 5}.
@@ -46,7 +54,7 @@ public class DebugExercise2 {
         }
         int[] returnArray = new int[a.length];
         for (int i = 0; i < a.length; i += 1) {
-            int biggerValue = max(a[i], b[i]);
+            int biggerValue = myMax(a[i], b[i]);
             returnArray[i] = biggerValue;
         }
 
@@ -58,7 +66,7 @@ public class DebugExercise2 {
         int i = 0;
         int sum = 0;
         while (i < x.length) {
-            sum = sum + add(sum, x[i]);
+            sum = add(sum, x[i]);
             i = i + 1;
         }
         return sum;
