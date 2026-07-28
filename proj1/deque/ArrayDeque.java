@@ -9,7 +9,7 @@ package deque;
     2 0 0 0 0 0 0 0
 * */
 
-public class ArrayDeque <T> {
+public class ArrayDeque <T> implements Deque <T> {
     private T[] items;
     private int size;
     public int Asize;
@@ -20,8 +20,8 @@ public class ArrayDeque <T> {
         items = (T[]) new Object[8];
         size = 0;
         Asize = 8;
-        first = 8;
-        last = -1;
+        first = 0;
+        last = 0;
     }
 
     public void resize (int size) {
@@ -30,7 +30,7 @@ public class ArrayDeque <T> {
 
         int sizee = this.size;
 
-        for (int index = first; ; index = (index + 1) % Asize) {
+        for (int index = first; sizee != 0; index = (index + 1) % Asize) {
             newItems[newIndex] = items[index];
             newIndex += 1;
             sizee -= 1;
@@ -44,27 +44,44 @@ public class ArrayDeque <T> {
 
     }
 
+    @Override
     public void addFirst (T item) {
         if (size == Asize) {
-            resize(size * 2);
+            resize(Asize * 2);
         }
-        first = (first - 1 + Asize) % Asize;
+
+        if (size == 0) {
+            first = 0;
+            last = 0;
+        }else {
+            first = (first - 1 + Asize) % Asize;
+        }
+
         items[first] = item;
         size += 1;
     }
 
+    @Override
     public void addLast (T item) {
         if (size == Asize) {
-            resize(size * 2);
+            resize(Asize * 2);
         }
-        last = last + 1;
+
+        if (size == 0) {
+            first = 0;
+            last = 0;
+        }else {
+            last = (last + 1) % Asize;
+        }
+
         items[last] = item;
         size += 1;
     }
 
+    @Override
     public void printDeque () {
         int sizee = size;
-        for (int index = first; ; index = (index + 1) % Asize) {
+        for (int index = first; sizee != 0; index = (index + 1) % Asize) {
             System.out.print(items[index] + " ");
             sizee -= 1;
             if (sizee == 0) break;
@@ -72,39 +89,66 @@ public class ArrayDeque <T> {
         System.out.println();
     }
 
+    @Override
     public boolean isEmpty () {
         return size == 0;
     }
 
+    @Override
     public int size () {
         return size;
     }
 
+    @Override
     public T removeFirst () {
         if (size == 0) return null;
-        if ((size - 1) * 2 < Asize) {
+        T x = items[first];
+        items[first] = null;
+        size -= 1;
+
+        if (size == 0) {
+            first = 0;
+            last = 0;
+        }else {
+            first = (first + 1) % Asize;
+        }
+
+        if (Asize > 8 && 2 * size < Asize) {
             resize(Asize / 2);
         }
-        T x = items[first];
 
-        items[first] = null;
-        first = (first + 1) % Asize;
-        size = size - 1;
         return x;
     }
 
+    @Override
     public T removeLast () {
         if (size == 0) return null;
         T x = items[last];
-
         items[last] = null;
-        last = (last - 1) % Asize;
-        size = size - 1;
+        size -= 1;
+
+        if (size == 0) {
+            first = 0;
+            last = 0;
+        }else {
+            last = (last - 1 + Asize) % Asize;
+        }
+
+        if (Asize > 8 && 2 * size < Asize) {
+            resize(Asize / 2);
+        }
 
         return x;
     }
 
+    public boolean validIndex (int index) {
+        if (size - 1 < index || index < 0) return false;
+        return true;
+    }
+
+    @Override
     public T get (int index) {
+        if (!validIndex(index)) return null;
         int trueIndex = (first + index + Asize) % Asize;
         return items[trueIndex];
     }

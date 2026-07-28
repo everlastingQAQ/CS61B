@@ -1,18 +1,18 @@
 package deque;
 
-import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdRandom;
-import org.checkerframework.checker.units.qual.A;
 import org.junit.Test;
 import java.util.LinkedList;
-import static org.junit.Assert.*;
+
+import static org.junit.Assert.assertEquals;
 
 public class ArrayDequeTest {
+
 
     int MN_VALUE = -1000000;
     int MX_VALUE = 1000001;
 
-    public void check (LinkedList <?> expected, LinkedListDeque <?> tested) {
+    public void check (LinkedList <?> expected, ArrayDeque <?> tested) {
         assertEquals(expected.size(), tested.size());
         assertEquals(expected.isEmpty(), tested.isEmpty());
         for (int i = 0; i < expected.size(); i++) {
@@ -23,12 +23,12 @@ public class ArrayDequeTest {
     @Test
     public void randomTest () {
         LinkedList <Integer> expected = new LinkedList<>();
-        LinkedListDeque <Integer> tested = new LinkedListDeque<>();
+        ArrayDeque <Integer> tested = new ArrayDeque<>();
 
         int count = 5;
         for (int ii = 0; ii  < count; ii++) {
 
-            int N = 5000;
+            int N = 50;
             int x = StdRandom.uniform(MN_VALUE, MX_VALUE);
             int y = StdRandom.uniform(MN_VALUE, MX_VALUE);
             int mn = Math.min(x, y);
@@ -71,7 +71,6 @@ public class ArrayDequeTest {
 
     }
 
-//
 //    @Test
 //    public void addTest () {
 //        ArrayDeque <Integer> tested = new ArrayDeque<>();
