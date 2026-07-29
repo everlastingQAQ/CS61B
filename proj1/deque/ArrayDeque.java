@@ -45,7 +45,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         items = newItems;
         first = 0;
         last = this.size - 1;
-        aSize = size;
+        aSize = newSize;
 
     }
 

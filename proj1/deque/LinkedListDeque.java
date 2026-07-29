@@ -5,7 +5,7 @@ import java.util.Objects;
 
 public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
 
-    public class Node {
+    private class Node {
 
         private T item;
         private Node prev;
@@ -88,7 +88,7 @@ public class LinkedListDeque<T> implements Deque<T>, Iterable<T> {
         return last.item;
     }
 
-    public boolean validIndex(int index) {
+    private boolean validIndex(int index) {
         if (size - 1 < index || index < 0) {
             return false;
         }

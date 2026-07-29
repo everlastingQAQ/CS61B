@@ -7,7 +7,7 @@ public class GuitarHero {
 
     static final double A = 440.0;
     static final double B = 2;
-    static final double C = 24;
+    static final int C = 24;
     static final double D = 12.0;
 
     public static void main(String[] args) {
