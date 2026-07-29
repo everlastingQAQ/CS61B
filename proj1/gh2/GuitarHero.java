@@ -4,12 +4,18 @@ import edu.princeton.cs.algs4.StdAudio;
 import edu.princeton.cs.algs4.StdDraw;
 
 public class GuitarHero {
-    public static void main (String[] args) {
+
+    static final double A = 440.0;
+    static final double B = 2;
+    static final double C = 24;
+    static final double D = 12.0;
+
+    public static void main(String[] args) {
         String keyboard = "q2we4r5ty7u8i9op-[=zxdcfvgbnjmk,.;/' ";
         GuitarString[] strings = new GuitarString[keyboard.length()];
 
         for (int i = 0; i < strings.length; i++) {
-            double frequency = 440.0 * Math.pow(2, (i - 24) / 12.0);
+            double frequency = A * Math.pow(B, (i - C) / D);
             strings[i] = new GuitarString(frequency);
         }
 

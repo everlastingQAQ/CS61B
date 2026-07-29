@@ -2,13 +2,8 @@ package deque;
 
 import edu.princeton.cs.algs4.StdRandom;
 import org.junit.Test;
-
 import java.util.Comparator;
-import java.util.Iterator;
-import java.util.LinkedList;
-
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class MaxArrayDequeTest {
 
@@ -19,23 +14,23 @@ public class MaxArrayDequeTest {
         }
     }
 
-    int MN_VALUE = -1000000;
-    int MX_VALUE = 1000001;
+    static final int MN_VALUE = -1000000;
+    static final int MX_VALUE = 1000001;
+    static final int COUNT = 200;
+    static final int N = 5000;
 
     @Test
-    public void randomTest () {
+    public void randomTest() {
         Comparator<Integer> c = new IntegerComparator();
 
-        int count = 10;
-        for (int ii = 0; ii < count; ii++) {
+        for (int ii = 0; ii < COUNT; ii++) {
 
-            int N = 5000;
             int x = StdRandom.uniform(MN_VALUE, MX_VALUE);
             int y = StdRandom.uniform(MN_VALUE, MX_VALUE);
             int mn = Math.min(x, y);
             int mx = Math.max(x, y);
             int currentMax = 0;
-            MaxArrayDeque <Integer> tested = new MaxArrayDeque<>(c);
+            MaxArrayDeque<Integer> tested = new MaxArrayDeque<>(c);
 
             for (int i = 0; i < N; i++) {
                 int num = StdRandom.uniform(mn, mx);
@@ -44,7 +39,7 @@ public class MaxArrayDequeTest {
                 }
                 currentMax = Math.max(currentMax, num);
                 tested.addLast(num);
-                assertEquals((int)tested.max(), currentMax);
+                assertEquals((int) tested.max(), currentMax);
             }
         }
 
