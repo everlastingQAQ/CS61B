@@ -12,7 +12,7 @@ package deque;
 import java.util.Iterator;
 import java.util.Objects;
 
-public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
+public class ArrayDeque<T> implements Deque<T> {
     private T[] items;
     private int size;
     private int aSize;
@@ -172,7 +172,7 @@ public class ArrayDeque<T> implements Deque<T>, Iterable<T> {
         private int pos;
         private int sz;
 
-        public ArrayDequeIterator() {
+        private ArrayDequeIterator() {
             pos = first;
             sz = 0;
         }
