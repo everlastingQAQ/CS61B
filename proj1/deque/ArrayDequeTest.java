@@ -27,7 +27,8 @@ public class ArrayDequeTest {
     }
 
     @Test
-    public void randomTest() {
+    public void randomTest()
+    {
         LinkedList<Integer> expected = new LinkedList<>();
         ArrayDeque<Integer> tested = new ArrayDeque<>();
 
