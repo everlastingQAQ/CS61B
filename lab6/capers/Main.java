@@ -6,7 +6,7 @@ import java.io.IOException;
 import static capers.Utils.*;
 
 /** Canine Capers: A Gitlet Prelude.
- * @Everlasting TODO
+ * @Everlasting
 */
 public class Main {
     /**
