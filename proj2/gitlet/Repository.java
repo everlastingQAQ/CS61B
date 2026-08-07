@@ -1,12 +1,10 @@
 package gitlet;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
 
 import static gitlet.Utils.*;
-import static gitlet.Main.isInited;
 
 /** The Repository class is responsible for the
  *      init, log command.
@@ -81,8 +79,6 @@ public class Repository {
 
         // update head
         writeContents(HEAD, "master");
-
-        isInited = true;
     }
 
     public static void coverFile(Commit commit, String fileName) {

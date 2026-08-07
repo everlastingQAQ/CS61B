@@ -1,7 +1,6 @@
 package gitlet;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -9,7 +8,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static gitlet.Commit.getHeadCommit;
-import static gitlet.Main.isInited;
 import static gitlet.Repository.*;
 import static gitlet.Utils.*;
 

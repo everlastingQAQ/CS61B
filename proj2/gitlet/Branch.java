@@ -26,11 +26,11 @@ public class Branch implements Serializable {
         this.headCommitString = headCommitString;
     }
 
-    public String HeadCommitString() {
+    public String headCommitString() {
         return headCommitString;
     }
 
-    public Commit HeadCommit() {
+    public Commit headCommit() {
         File headCommitFile = join(COMMIT_DIR, headCommitString);
         Commit headCommit = readObject(headCommitFile, Commit.class);
         return headCommit;

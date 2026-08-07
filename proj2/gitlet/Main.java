@@ -1,12 +1,10 @@
 package gitlet;
 
-import java.io.IOException;
 import java.util.Date;
 
 import static gitlet.Commit.*;
 import static gitlet.Repository.*;
 import static gitlet.Utils.error;
-import static gitlet.Utils.readObject;
 
 /** Driver class for Gitlet, a subset of the Git version-control system.
  *
@@ -24,9 +22,23 @@ public class Main {
      *  commit [message] -- commit a new submit
      *
      *  rm [file name] -- remove a file
+     *
+     *  log -- go through from head commit to the first commit
+     *
+     *  global-log -- show all the logs
+     *
+     *  find [commit message] -- find the commits with the commit message
+     *
+     *  checkout -- [file name] -- make the file to the head commit's file
+     *
+     *  checkout [commit id] -- [filename] -- make the file to the commitID's commit's file
      */
 
+    /** judge whether it is inited */
     public static boolean isInited = Repository.GITLET_DIR.exists();
+
+    /** SHA1's max length */
+    public static final int MAXLEN = 40;
 
     public static void main(String[] args) {
         if (args.length <= 0) {
@@ -38,7 +50,7 @@ public class Main {
         } else if (firstArg.equals("init") && isInited) {
             throw error("A Gitlet version-control system already exists in the current directory.");
         }
-        switch(firstArg) {
+        switch (firstArg) {
             case "init":
                 init(args);
                 break;
@@ -55,7 +67,7 @@ public class Main {
                 log(args);
                 break;
             case "global-log":
-                global_log(args);
+                globalLog(args);
                 break;
             case "find":
                 find(args);
@@ -117,7 +129,7 @@ public class Main {
         readLog();
     }
 
-    public static void global_log(String[] args) {
+    public static void globalLog(String[] args) {
         if (args.length != 1) {
             throw error("Incorrect operands.");
         }
@@ -146,9 +158,9 @@ public class Main {
             if (!args[2].equals("--")) {
                 throw error("Incorrect operands.");
             }
-            String CommitID = args[1];
+            String commitID = args[1];
             String fileName = args[3];
-            coverFile(getCommit(CommitID), fileName);
+            coverFile(getCommit(commitID), fileName);
         } else {
             throw error("Incorrect operands.");
         }

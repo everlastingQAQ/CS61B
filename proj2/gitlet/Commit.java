@@ -1,7 +1,6 @@
 package gitlet;
 
 import java.io.File;
-import java.io.Serial;
 import java.io.Serializable;
 import java.util.Date;
 import java.util.HashMap;
@@ -10,8 +9,7 @@ import java.util.Map;
 import java.util.Formatter;
 
 import static gitlet.Branch.getHeadBranch;
-import static gitlet.Main.commit;
-import static gitlet.Main.isInited;
+import static gitlet.Main.*;
 import static gitlet.Repository.*;
 import static gitlet.Utils.*;
 
@@ -50,6 +48,7 @@ public class Commit implements Serializable {
     /** The second parent Commit String of the Commit. */
     private String secondParentCommitString = null;
 
+    /** Commit's SHA1 */
     private String SHA1 = "";
 
     /** Creat a new commit
@@ -61,7 +60,7 @@ public class Commit implements Serializable {
      *  5. update the branch newest commit
      *  6. remove staging
      * */
-    public Commit (String message, Date timestamp, String secondParentCommitString) {
+    public Commit(String message, Date timestamp, String secondParentCommitString) {
         // Sync the initial information
         this.message = message;
         this.timestamp = timestamp;
@@ -118,11 +117,11 @@ public class Commit implements Serializable {
     }
 
     public static Commit getHeadCommit() {
-        return getHeadBranch().HeadCommit();
+        return getHeadBranch().headCommit();
     }
 
     public static String getHeadCommitString() {
-        return getHeadBranch().HeadCommitString();
+        return getHeadBranch().headCommitString();
     }
 
 
@@ -138,6 +137,7 @@ public class Commit implements Serializable {
         printOutLog(curHeadCommit);
     }
 
+    /** judge whether the commit has parent commit */
     public boolean hasParentCommit() {
         if (this.parentCommitString != null) {
             return true;
@@ -145,6 +145,14 @@ public class Commit implements Serializable {
         return false;
     }
 
+    /** get this commit's parent commit */
+    public Commit getParentCommit() {
+        File parentCommitStringFile = join(COMMIT_DIR, this.parentCommitString);
+        Commit parentCommit = readObject(parentCommitStringFile, Commit.class);
+        return parentCommit;
+    }
+
+    /** print out the log information */
     public static void printOutLog(Commit commit) {
         System.out.println("===");
         System.out.println("commit " + commit.getSHA1());
@@ -159,13 +167,6 @@ public class Commit implements Serializable {
         System.out.println();
     }
 
-    public Commit getParentCommit() {
-        String parentCommitString = this.parentCommitString;
-        File parentCommitStringFile = join(COMMIT_DIR, parentCommitString);
-        Commit parentCommit = readObject(parentCommitStringFile, Commit.class);
-        return parentCommit;
-    }
-
     /** -- global-log
      *
      * */
@@ -176,8 +177,9 @@ public class Commit implements Serializable {
         }
     }
 
+    /** get commit by the commit SHA1 */
     public static Commit getCommit(String commitID) {
-        if (commitID.length() < 40 && !commitID.isEmpty()) {
+        if (commitID.length() < MAXLEN && !commitID.isEmpty()) {
             List<String> allFileNames = plainFilenamesIn(COMMIT_DIR);
             int length = commitID.length();
             for (String fileName : allFileNames) {
@@ -186,7 +188,7 @@ public class Commit implements Serializable {
                     return getCommit(fileName);
                 }
             }
-        } else if (commitID.length() == 40) {
+        } else if (commitID.length() == MAXLEN) {
             File file = join(COMMIT_DIR, commitID);
             if (file.exists()) {
                 return readObject(file, Commit.class);
@@ -195,15 +197,15 @@ public class Commit implements Serializable {
         throw error("No commit with that id exists.");
     }
 
-    /** -- find
-     *
+    /** -- find [commit message]
+     *  find the commit by the commit message
      */
-    public static void findCommit(String commitID) {
+    public static void findCommit(String commitMessage) {
         List<String> allFileNames = plainFilenamesIn(COMMIT_DIR);
         boolean hasMessage = false;
         for (String fileName : allFileNames) {
             Commit commit = getCommit(fileName);
-            if (commit.message.equals(commitID)) {
+            if (commit.message.equals(commitMessage)) {
                 System.out.println(commit.getSHA1());
                 hasMessage = true;
             }
