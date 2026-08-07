@@ -69,7 +69,7 @@ public class Commit implements Serializable {
         this.parentCommitString = getHeadCommitString();
 
         // introduce the staging files: commit -> rm files -> add files
-        this.blobs = new HashMap<>(getHeadCommit().getBlobs());
+        this.blobs = new TreeMap<>(getHeadCommit().getBlobs());
 
         Staging stage = readObject(STAGING, Staging.class);
         for (String rmFile : stage.viewRmFiles()) {
@@ -195,7 +195,6 @@ public class Commit implements Serializable {
         if (!commitFile.exists()) {
             throw error("No commit with that id exists.");
         }
-
 
     }
 

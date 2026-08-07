@@ -76,6 +76,7 @@ public class Branch implements Serializable {
         Map<String, String> curTrackedFiles = curHeadCommit.getBlobs();
 
         // check the untracked files
+        //TODO
         List<String> cwdFilesNames = plainFilenamesIn(CWD);
         if (cwdFilesNames != null) {
             for (String cwdFileName : cwdFilesNames) {
