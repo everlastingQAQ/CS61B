@@ -1,4 +1,4 @@
-# This makefile is defined to give you the following targets:
+                        # This makefile is defined to give you the following targets:
 #
 #    default: The default target: Compiles $(PROG) and whatever it 
 #	   depends on.
