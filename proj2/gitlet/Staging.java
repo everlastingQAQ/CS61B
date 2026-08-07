@@ -56,7 +56,7 @@ public class Staging implements Serializable {
      *  5. add the file in the blobs with the SHA-1 file name
      *  6. update the addition file
      */
-    public void addFile(String fileName) throws IOException {
+    public void addFile(String fileName) {
         File file = join(CWD, fileName);
         if (!file.exists() || !file.isFile()) {
             throw error("File does not exist.");
@@ -111,12 +111,11 @@ public class Staging implements Serializable {
      *  2. create a file with the SHA1 name
      *  3. write contents in the file
      * */
-    private void addFileInBlobs(File file, String fileSHA1) throws IOException {
+    private void addFileInBlobs(File file, String fileSHA1) {
         File addFile = join(BLOB_DIR, fileSHA1);
         if (addFile.exists()) {
             return;
         }
-        addFile.createNewFile();
         byte[] fileContents = readContents(file);
         writeContents(addFile, fileContents);
     }

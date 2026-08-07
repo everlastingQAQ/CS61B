@@ -28,7 +28,7 @@ public class Main {
 
     public static boolean isInited = Repository.GITLET_DIR.exists();
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         if (args.length <= 0) {
             throw error("Please enter a command.");
         }
@@ -68,14 +68,14 @@ public class Main {
         }
     }
 
-    public static void init(String[] args) throws IOException {
+    public static void init(String[] args) {
         if (args.length != 1) {
             throw error("Incorrect operands.");
         }
         initGitlet();
     }
 
-    public static void add(String[] args) throws IOException {
+    public static void add(String[] args) {
         if (args.length != 2) {
             throw error("Incorrect operands.");
         }
@@ -84,7 +84,7 @@ public class Main {
         stagingAdd.addFile(addFileName);
     }
 
-    public static void commit(String[] args) throws IOException {
+    public static void commit(String[] args) {
         if (args.length == 1 || args[1].isEmpty()) {
             throw error("Please enter a commit message.");
         }
@@ -132,7 +132,7 @@ public class Main {
         findCommit(commitMessage);
     }
 
-    public static void checkout(String[] args) throws IOException {
+    public static void checkout(String[] args) {
         if (args.length == 2) {
             String branchName = args[1];
             throw error("No command with that name exists.");

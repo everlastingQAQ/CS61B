@@ -52,23 +52,11 @@ public class Repository {
     public static final File HEAD = join(GITLET_DIR, "head");
 
     /** Initialize the designed folders and files */
-    private static void initRepository() throws IOException {
+    private static void initRepository() {
         GITLET_DIR.mkdir();
         COMMIT_DIR.mkdir();
         BLOB_DIR.mkdir();
         BRANCH_DIR.mkdir();
-
-        if (!MASTER.createNewFile()) {
-            throw error("A Gitlet version-control system already exists in the current directory.");
-        }
-
-        if (!HEAD.createNewFile()) {
-            throw error("A Gitlet version-control system already exists in the current directory.");
-        }
-
-        if (!STAGING.createNewFile()) {
-            throw error("A Gitlet version-control system already exists in the current directory.");
-        }
         Staging initStaging = new Staging(true);
         writeObject(STAGING, initStaging);
     }
@@ -80,7 +68,7 @@ public class Repository {
      *  4. write master in the head
      *
      * */
-    public static void initGitlet() throws IOException {
+    public static void initGitlet() {
         // init the repository
         initRepository();
 
@@ -97,16 +85,13 @@ public class Repository {
         isInited = true;
     }
 
-    public static void coverFile(Commit commit, String fileName) throws IOException {
+    public static void coverFile(Commit commit, String fileName) {
         Map<String, String> files = commit.getBlobs();
         if (!files.containsKey(fileName)) {
             throw error("File does not exist in that commit.");
         }
         File file = join(BLOB_DIR, files.get(fileName));
         File CWDFile = join(CWD, fileName);
-        if (!CWDFile.exists()) {
-            CWDFile.createNewFile();
-        }
         byte[] fileContents = readContents(file);
         writeContents(CWDFile, fileContents);
     }
