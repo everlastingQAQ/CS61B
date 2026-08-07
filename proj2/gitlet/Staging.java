@@ -2,10 +2,7 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 import static gitlet.Commit.getHeadCommit;
 import static gitlet.Repository.*;
@@ -19,27 +16,19 @@ import static gitlet.Utils.*;
 public class Staging implements Serializable {
 
     /** Key: file name, Value: file's SHA-1 */
-    private Map<String, String> addFiles = new HashMap<>();
-    private Set<String> rmFiles = new HashSet<>();
-
-    public Staging() {
-        Staging preStaging = readObject(STAGING, Staging.class);
-        this.addFiles = preStaging.addFiles;
-        this.rmFiles = preStaging.rmFiles;
-    }
+    private Map<String, String> addFiles;
+    private Set<String> rmFiles;
 
     /** create empty stage */
     public Staging(boolean isEmpty) {
-        this.addFiles = new HashMap<>();
-        this.rmFiles = new HashSet<>();
-    }
-
-    /** judge the staging whether it is empty */
-    public boolean isEmpty() {
-        if (addFiles.isEmpty() && rmFiles.isEmpty()) {
-            return true;
+        if (isEmpty) {
+            this.addFiles = new HashMap<>();
+            this.rmFiles = new HashSet<>();
+        } else {
+            Staging preStaging = readObject(STAGING, Staging.class);
+            this.addFiles = preStaging.addFiles;
+            this.rmFiles = preStaging.rmFiles;
         }
-        return false;
     }
 
     /** -- add [file name]
@@ -56,11 +45,12 @@ public class Staging implements Serializable {
      */
     public void addFile(String fileName) {
         File file = join(CWD, fileName);
-        if (!file.exists() || !file.isFile()) {
+        if (!file.exists()) {
             throw error("File does not exist.");
         }
         String fileSHA1 = getFileSHA1(file);
 
+        // remove the file from rmFiles
         boolean rmFilesChanged = rmFiles.remove(fileName);
 
         // check the file in the addFiles
@@ -106,8 +96,7 @@ public class Staging implements Serializable {
     /** add file in the folder
      *  1. check whether there is a same file in the BLOB_DIR
      *      - If it exists, return
-     *  2. create a file with the SHA1 name
-     *  3. write contents in the file
+     *  2. write contents in the file
      * */
     private void addFileInBlobs(File file, String fileSHA1) {
         File addFile = join(BLOB_DIR, fileSHA1);
@@ -126,23 +115,15 @@ public class Staging implements Serializable {
         return false;
     }
 
-    public Map<String, String> viewAddFiles() {
-        return addFiles;
-    }
-
-    public Set<String> viewRmFiles() {
-        return rmFiles;
-    }
-
 
     /** -- rm [file name]
      *  1. check the file whether it is in the addFiles and head Commit
-     *      - if exists, delete staging, renew staging
+     *      - if it exists, delete staging, renew staging
      *      - else throw error
      *  2. check the file whether stays in the CWD
      *      - if exists, delete the file
      * */
-    public void rmFiles(String fileName) {
+    public void removeFiles(String fileName) {
         // check the add files
         boolean addFilesExists = false;
         if (addFiles.containsKey(fileName)) {
@@ -169,10 +150,27 @@ public class Staging implements Serializable {
             // check the CWD
             File file = join(CWD, fileName);
             if (file.exists()) {
-                restrictedDelete(file);
+                file.delete();
             }
         }
 
     }
 
+
+    /* Assisted Function */
+    /** judge the staging whether it is empty */
+    public boolean isEmpty() {
+        if (addFiles.isEmpty() && rmFiles.isEmpty()) {
+            return true;
+        }
+        return false;
+    }
+
+    public Map<String, String> viewAddFiles() {
+        return addFiles;
+    }
+
+    public Set<String> viewRmFiles() {
+        return rmFiles;
+    }
 }

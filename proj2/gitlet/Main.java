@@ -2,6 +2,7 @@ package gitlet;
 
 import java.util.Date;
 
+import static gitlet.Branch.*;
 import static gitlet.Commit.*;
 import static gitlet.Repository.*;
 import static gitlet.Utils.error;
@@ -12,8 +13,7 @@ import static gitlet.Utils.error;
  */
 public class Main {
 
-    /** Usage: java gitlet.Main ARGS, where ARGS contains
-     *  <COMMAND> <OPERAND1> <OPERAND2> ...
+    /** Usage: java gitlet.Main ARGS
      *
      *  init -- init the gitlet repository
      *
@@ -32,6 +32,12 @@ public class Main {
      *  checkout -- [file name] -- make the file to the head commit's file
      *
      *  checkout [commit id] -- [filename] -- make the file to the commitID's commit's file
+     *
+     *  status -- show the gitlet status
+     *
+     *  rm-branch [branch name] -- remove the branch
+     *
+     *  reset [commit id] -- reset the user dir to the commit
      */
 
     /** judge whether it is inited */
@@ -75,6 +81,18 @@ public class Main {
             case "checkout":
                 checkout(args);
                 break;
+            case "branch":
+                branch(args);
+                break;
+            case "status":
+                status(args);
+                break;
+            case "rm-branch":
+                rmBranch(args);
+                break;
+            case "reset":
+                reset(args);
+                break;
             default:
                 throw error("No command with that name exists.");
         }
@@ -92,7 +110,7 @@ public class Main {
             throw error("Incorrect operands.");
         }
         String addFileName = args[1];
-        Staging stagingAdd = new Staging();
+        Staging stagingAdd = new Staging(false);
         stagingAdd.addFile(addFileName);
     }
 
@@ -104,7 +122,7 @@ public class Main {
             throw error("Incorrect operands.");
         }
 
-        Staging stagingCommit = new Staging();
+        Staging stagingCommit = new Staging(false);
         if (stagingCommit.isEmpty()) {
             throw error("No changes added to the commit.");
         }
@@ -117,9 +135,9 @@ public class Main {
         if (args.length != 2) {
             throw error("Incorrect operands.");
         }
-        Staging stagingRm = new Staging();
+        Staging stagingRm = new Staging(false);
         String rmFilesName = args[1];
-        stagingRm.rmFiles(rmFilesName);
+        stagingRm.removeFiles(rmFilesName);
     }
 
     public static void log(String[] args) {
@@ -147,7 +165,7 @@ public class Main {
     public static void checkout(String[] args) {
         if (args.length == 2) {
             String branchName = args[1];
-            throw error("No command with that name exists.");
+            switchBranch(branchName);
         } else if (args.length == 3) {
             if (!args[1].equals("--")) {
                 throw error("Incorrect operands.");
@@ -166,5 +184,34 @@ public class Main {
         }
     }
 
+    public static void branch(String[] args) {
+        if (args.length == 1) {
+            throw error("Incorrect operands.");
+        }
+        String branchName = args[1];
+        newBranch(branchName);
+    }
 
+    public static void status(String[] args) {
+        if (args.length != 1) {
+            throw error("Incorrect operands.");
+        }
+        showStatus();
+    }
+
+    public static void rmBranch(String[] args) {
+        if (args.length == 1 || args.length > 2) {
+            throw error("Incorrect operands.");
+        }
+        String branchName = args[1];
+        removeBranch(branchName);
+    }
+
+    public static void reset(String[] args) {
+        if (args.length == 1 || args.length > 2) {
+            throw error("Incorrect operands.");
+        }
+        String commitString = args[1];
+        resetCommit(commitString);
+    }
 }
