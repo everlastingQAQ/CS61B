@@ -190,15 +190,80 @@ public class Commit implements Serializable {
         }
     }
 
-    public static void resetCommit(String commitString) {
-        File commitFile = join(COMMIT_DIR, commitString);
-        if (!commitFile.exists()) {
-            throw error("No commit with that id exists.");
-        }
+    /** -- reset [commit id]
+     *  1. check the commit exists or not
+     *  2. update the working directory
+     *  3. change the branch's head commit
+     * */
+    public static void resetCommit(String rawCommitString) {
+        // get the commit
+        Commit targetCommit = getCommit(rawCommitString);
+        Commit headCommit = getHeadCommit();
 
+        updateWorkingDirectory(headCommit, targetCommit);
+
+        // change the branch's head commit
+        String branchName = getHeadBranch().getName();
+        Branch newTargetBranch = new Branch(branchName, targetCommit.getSHA1());
+        File branchFile = join(BRANCH_DIR, branchName);
+        writeObject(branchFile, newTargetBranch);
     }
 
     /* Assisted Function */
+
+    /** update the working directory to the target commit
+     *  1. check the untracked conflict
+     *  2. delete the files from the current files
+     *  3. cover the files with the target commit
+     *  4. update the stage
+     * */
+    public static void updateWorkingDirectory(Commit currentCommit, Commit targetCommit)
+    {
+        Map<String, String> curTrackedFiles = currentCommit.getBlobs();
+        Map<String, String> tarTrackedFiles = targetCommit.getBlobs();
+
+        // check the untracked conflict
+        Staging curStage = new Staging(false);
+        Map<String, String> addFiles = curStage.viewAddFiles();
+        Set<String> rmFiles = curStage.viewRmFiles();
+        List<String> cwdFilesNames = plainFilenamesIn(CWD);
+
+        if (cwdFilesNames != null) {
+            for (String cwdFileName : cwdFilesNames) {
+                boolean untracked = ((!curTrackedFiles.containsKey(cwdFileName) && !addFiles.containsKey(cwdFileName))
+                        || rmFiles.contains(cwdFileName));
+                if (untracked && tarTrackedFiles.containsKey(cwdFileName)) {
+                    throw error("There is an untracked file in the way; delete it, or add and commit it first.");
+                }
+            }
+        }
+
+        // delete the files from the current commit
+        if (curTrackedFiles != null) {
+            for (Map.Entry<String, String> entry : curTrackedFiles.entrySet()) {
+                if (!tarTrackedFiles.containsKey(entry.getKey())) {
+                    File file = join(CWD, entry.getKey());
+                    if (file.exists()) {
+                        file.delete();
+                    }
+                }
+            }
+        }
+
+        // cover the files with the target tracked files
+        for (Map.Entry<String, String> entry : tarTrackedFiles.entrySet()) {
+            File file = join(BLOB_DIR, entry.getValue());
+            byte[] contents = readContents(file);
+            File newFile = join(CWD, entry.getKey());
+            writeContents(newFile, contents);
+        }
+
+        // update the stage
+        Staging newStage = new Staging(true);
+        writeObject(STAGING, newStage);
+    }
+
+
     /** get the head commit */
     public static Commit getHeadCommit() {
         return getHeadBranch().headCommit();

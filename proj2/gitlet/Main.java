@@ -33,7 +33,11 @@ public class Main {
      *
      *  checkout [commit id] -- [filename] -- make the file to the commitID's commit's file
      *
+     *  checkout [branch name] -- switch to a branch
+     *
      *  status -- show the gitlet status
+     *
+     *  branch [branch name] -- create a new branch
      *
      *  rm-branch [branch name] -- remove the branch
      *
