@@ -42,6 +42,8 @@ public class Main {
      *  rm-branch [branch name] -- remove the branch
      *
      *  reset [commit id] -- reset the user dir to the commit
+     *
+     *  merge [branch name] -- merge the two branches
      */
 
     /** judge whether it is inited */
@@ -96,6 +98,9 @@ public class Main {
                 break;
             case "reset":
                 reset(args);
+                break;
+            case "merge":
+                merge(args);
                 break;
             default:
                 throw error("No command with that name exists.");
@@ -217,5 +222,16 @@ public class Main {
         }
         String commitString = args[1];
         resetCommit(commitString);
+    }
+
+    public static void merge(String[] args)
+    {
+        if (args.length == 1 || args.length > 2)
+        {
+            throw error("Incorrect operands.");
+        }
+
+        String branchName = args[1];
+        mergeBranch(branchName);
     }
 }

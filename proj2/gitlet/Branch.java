@@ -2,8 +2,8 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
+import java.sql.Blob;
+import java.util.*;
 
 import static gitlet.Commit.*;
 import static gitlet.Repository.*;
@@ -90,7 +90,257 @@ public class Branch implements Serializable {
         branchFile.delete();
     }
 
+    /** -- merge [branch name]
+     *  1. check the staging exists files or not
+     *  2. check the branch exists or not
+     *  3. check the branch name is head branch or not
+     *  4. find the split commit
+     *      - if lca commit is the given branch's head commit, print ... , return
+     *      - if lca commit is the current branch's head commit, reset the given commit, return
+     *  5. check the CWD has the untracked files that will be deleted or covered or not
+     *      - if it has, throw error
+     *  6. go through the given commit's blobs:
+     *      - if the file doesn't exist in the current commit's blobs:
+     *          - if the file exists in the split commit's blobs:
+     *              - if the file is different from the split's file:
+     *                  conflict happens
+     *          - else the file doesn't exist in the split commit's blobs:
+     *              checkout the given's file to the CWD and add the file to the addition stage
+     *  7. go through the current commit's blobs:
+     *      - if the file exists in the given commit's blobs:
+     *          - if the file doesn't exist in the split commit's blobs:
+     *              - if the file is different from the given's file:
+     *                  conflict happens
+     *          - else the file exists in the split commit's blobs:
+     *              - if the current's file is the same as the split's file:
+     *                  cover the file with the given's file in the stage
+     *              - else the current's file is different from the split's file:
+     *                  - if the given's file is different from the split's file:
+     *                      - if the given's file is different from the current's file:
+     *                          conflict happens
+     *      - else the file doesn't exist in the given commit's blobs:
+     *          - if the file exists in the split commit's blobs:
+     *              - if the file is the same as the split file:
+     *                  remove the file and stage it for removal
+     *              - else the file is different from the split file:
+     *                  conflict happens
+     *  8. create a commit
+     *  9. If conflict happens, print ...
+     * */
+    public static void mergeBranch(String branchName)
+    {
+        // check the stage
+        Staging curStage = new Staging(false);
+        if (!curStage.isEmpty()) {
+            throw error("You have uncommitted changes.");
+        }
+
+        // check the branch name exists
+        if (!branchNameExists(branchName)) {
+            throw error("A branch with that name does not exist.");
+        }
+
+        // check the head branch name
+        Branch headBranch = getHeadBranch();
+        String headBranchName = headBranch.getName();
+        if (headBranchName.equals(branchName)) {
+            throw error("Cannot merge a branch with itself.");
+        }
+
+        // find the split commit
+        Branch givenBranch = getBranch(branchName);
+        Commit givenCommit = givenBranch.headCommit();
+        Commit curCommit = getHeadCommit();
+        Commit splitCommit = getSplitPoint(curCommit, givenCommit);
+
+        // check the split commit
+        if (splitCommit.getSHA1().equals(givenCommit.getSHA1())) {
+            System.out.println("Given branch is an ancestor of the current branch.");
+            return;
+        }
+        if (splitCommit.getSHA1().equals(curCommit.getSHA1())) {
+            resetCommit(givenCommit.getSHA1());
+            System.out.println("Current branch fast-forwarded.");
+            return;
+        }
+
+        // check the untracked files
+        Map<String, String> curFiles = curCommit.getBlobs();
+        Map<String, String> givenFiles = givenCommit.getBlobs();
+        Map<String, String> splitFiles = splitCommit.getBlobs();
+        checkUntrackedFiles(curFiles, givenFiles, splitFiles);
+
+        boolean conflictHappened = false;
+        // go through the givenFiles
+        for (Map.Entry<String, String> entry : givenFiles.entrySet()) {
+            String fileName = entry.getKey();
+            String fileSHA1 = entry.getValue();
+
+            if (!curFiles.containsKey(fileName)) {
+                if (splitFiles.containsKey(fileName)) {
+                    if (!fileSHA1.equals(splitFiles.get(fileName))) {
+                        conflict(null, fileSHA1, fileName);
+                        conflictHappened = true;
+                    }
+                } else {
+                    File cwdFile = join(CWD, fileName);
+                    File givenFile = join(BLOB_DIR, fileSHA1);
+                    writeContents(cwdFile, readContents(givenFile));
+                    Staging stage = new Staging(false);
+                    stage.addFile(fileName);
+                }
+            }
+        }
+
+        // go through the curFiles
+        for (Map.Entry<String, String> entry : curFiles.entrySet()) {
+            String fileName = entry.getKey();
+            String fileSHA1 = entry.getValue();
+            File cwdFile = join(CWD, fileName);
+
+            if (givenFiles.containsKey(fileName)) {
+                if (!splitFiles.containsKey(fileName)) {
+                    if (!fileSHA1.equals(givenFiles.get(fileName))) {
+                        conflict(fileSHA1, givenFiles.get(fileName), fileName);
+                        conflictHappened = true;
+                    }
+                } else {
+                    if (curFiles.get(fileName).equals(splitFiles.get(fileName))) {
+                        String givenSHA1 = givenFiles.get(fileName);
+                        File givenFile = join(BLOB_DIR, givenSHA1);
+                        writeContents(cwdFile, readContents(givenFile));
+                        Staging stage = new Staging(false);
+                        stage.addFile(fileName);
+                    } else if (!fileSHA1.equals(givenFiles.get(fileName)) && !fileSHA1.equals(splitFiles.get(fileName))
+                                && !givenFiles.get(fileName).equals(splitFiles.get(fileName))) {
+                        conflict(fileSHA1, givenFiles.get(fileName), fileName);
+                        conflictHappened = true;
+                    }
+                }
+            } else {
+                if (splitFiles.containsKey(fileName)) {
+                    if (fileSHA1.equals(splitFiles.get(fileName))) {
+                        cwdFile.delete();
+                        Staging stage = new Staging(false);
+                        stage.removeFiles(fileName);
+                    } else {
+                        conflict(fileSHA1, givenFiles.get(fileName), fileName);
+                        conflictHappened = true;
+                    }
+                }
+            }
+        }
+
+        // create a commit
+        String commitMessage = "Merged " + branchName + " into " + headBranch.getName() + ".";
+        new Commit(commitMessage, new Date(), givenBranch.headCommit().getSHA1());
+
+        if (conflictHappened) {
+            System.out.println("Encountered a merge conflict.");
+        }
+    }
+
     /* Assisted Function */
+    /** find the lca commit
+     *  1. get all the parents commit from cur commit and given commit
+     *  2. find the common commits
+     *  3. select the commit which isn't the parent's commit from the common commits
+     *  */
+    public static Commit getSplitPoint(Commit curCommit, Commit givenCommit)
+    {
+        Set<String> curParents = getParentCommits(curCommit);
+        Set<String> givenParents = getParentCommits(givenCommit);
+        Set<String> commonParents = new HashSet<>(curParents);
+        commonParents.retainAll(givenParents);
+        Set<String> notLatest = new HashSet<>();
+        for (String commitName : commonParents) {
+            Commit commit = getCommit(commitName);
+            if (commit.hasParentCommit()) {
+                String parentName = commit.getParentCommit().getSHA1();
+                if (commonParents.contains(parentName)) {
+                    notLatest.add(parentName);
+                }
+            }
+            if (commit.hasSecondParentCommit()) {
+                String secondParentName = commit.getSecondParentCommit().getSHA1();
+                if (commonParents.contains(secondParentName)) {
+                    notLatest.add(secondParentName);
+                }
+            }
+        }
+        for (String commitName : commonParents) {
+            if (!notLatest.contains(commitName)) {
+                return getCommit(commitName);
+            }
+        }
+        return null;
+    }
+
+    /** get all the parent commits */
+    public static Set<String> getParentCommits(Commit initialCommit) {
+        Queue<String> queue = new ArrayDeque<>();
+        Set<String> visited = new TreeSet<>();
+        queue.add(initialCommit.getSHA1());
+        while (!queue.isEmpty()) {
+            String commitName = queue.remove();
+            if (visited.contains(commitName)) {
+                continue;
+            }
+            visited.add(commitName);
+
+            Commit commit = getCommit(commitName);
+            if (commit.hasParentCommit()) {
+                queue.add(commit.getParentCommit().getSHA1());
+            }
+            if (commit.hasSecondParentCommit()) {
+                queue.add(commit.getSecondParentCommit().getSHA1());
+            }
+        }
+        return visited;
+    }
+
+    /** check the CWD has the untracked files that will be deleted or covered or not */
+    public static void checkUntrackedFiles(Map<String, String> curFiles, Map<String, String> givenFiles, Map<String, String> splitFiles) {
+        List<String> cwdFiles = plainFilenamesIn(CWD);
+        if (cwdFiles != null) {
+            for (String fileName : cwdFiles) {
+                // check the file is untracked or not
+                if (curFiles.containsKey(fileName)) {
+                    continue;
+                }
+
+                if (givenFiles.containsKey(fileName)) {
+                    if (!givenFiles.get(fileName).equals(splitFiles.get(fileName))) {
+                        throw error("There is an untracked file in the way; delete it, or add and commit it first.");
+                    }
+                }
+            }
+        }
+    }
+
+    /** deal with the conflict */
+    public static void conflict(String curSHA1, String givenSHA1, String fileName) {
+        String curContents = "";
+        String givenContents = "";
+        if (curSHA1 != null) {
+            File curFile = join(BLOB_DIR, curSHA1);
+            curContents = readContentsAsString(curFile);
+        }
+        if (givenSHA1 != null) {
+            File givenFile = join(BLOB_DIR, givenSHA1);
+            givenContents = readContentsAsString(givenFile);
+        }
+
+        String conflictContents = "<<<<<<< HEAD\n" + curContents  + "=======\n" + givenContents + ">>>>>>>\n";
+        byte[] fileContents = conflictContents.getBytes();
+
+        File cwdFile = join(CWD, fileName);
+        writeContents(cwdFile, conflictContents);
+
+        Staging stage = new Staging(false);
+        stage.addFile(fileName);
+    }
+
     /** check the branch name exists */
     public static boolean branchNameExists(String branchName) {
         List<String> allBranches = plainFilenamesIn(BRANCH_DIR);

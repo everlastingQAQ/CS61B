@@ -282,11 +282,26 @@ public class Commit implements Serializable {
         return false;
     }
 
+    /** judge whether the commit has second parent commit */
+    public boolean hasSecondParentCommit() {
+        if (this.secondParentCommitString != null) {
+            return true;
+        }
+        return false;
+    }
+
     /** get this commit's parent commit */
     public Commit getParentCommit() {
         File parentCommitStringFile = join(COMMIT_DIR, this.parentCommitString);
         Commit parentCommit = readObject(parentCommitStringFile, Commit.class);
         return parentCommit;
+    }
+
+    /** get this commit's second parent commit */
+    public Commit getSecondParentCommit() {
+        File parentCommitStringFile = join(COMMIT_DIR, this.secondParentCommitString);
+        Commit secondParentCommit = readObject(parentCommitStringFile, Commit.class);
+        return secondParentCommit;
     }
 
     /** get this commit's message */
