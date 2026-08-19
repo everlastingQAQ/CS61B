@@ -1,0 +1,41 @@
+InsertRandomSpeedTest
+
+String length = 10
+
+N = 100000
+ULLMap: Stack Overflow
+BSTMap: 0.05 sec
+TreeMap: 0.05 sec
+HashMap: 0.03 sec
+
+N = 1000000
+ULLMap: Stack Overflow
+BSTMap: 0.74 sec
+TreeMap: 0.77 sec
+HashMap: 0.32 sec
+
+InsertInOrderSpeedTest
+
+N = 100
+ULLMap: 0.00 sec
+BSTMap: 0.00 sec
+TreeMap: 0.00 sec
+HashMap: 0.00 sec
+
+N = 1000
+ULLMap: 0.01 sec
+BSTMap: 0.00 sec
+TreeMap: 0.00 sec
+HashMap: 0.00 sec
+
+N = 10000
+ULLMap: 0.50 sec
+BSTMap: 0.14 sec
+TreeMap: 0.01 sec
+HashMap: 0.00 sec
+
+N = 100000
+ULLMap: Stack Overflow
+BSTMap: 5.64 sec
+TreeMap: 0.09 sec
+HashMap: 0.02 sec
