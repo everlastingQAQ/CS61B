@@ -2,7 +2,6 @@ package gitlet;
 
 import java.io.File;
 import java.io.Serializable;
-import java.sql.Blob;
 import java.util.*;
 
 import static gitlet.Commit.*;
@@ -127,8 +126,7 @@ public class Branch implements Serializable {
      *  8. create a commit
      *  9. If conflict happens, print ...
      * */
-    public static void mergeBranch(String branchName)
-    {
+    public static void mergeBranch(String branchName) {
         // check the stage
         Staging curStage = new Staging(false);
         if (!curStage.isEmpty()) {
@@ -171,64 +169,9 @@ public class Branch implements Serializable {
         checkUntrackedFiles(curFiles, givenFiles, splitFiles);
 
         boolean conflictHappened = false;
-        // go through the givenFiles
-        for (Map.Entry<String, String> entry : givenFiles.entrySet()) {
-            String fileName = entry.getKey();
-            String fileSHA1 = entry.getValue();
-
-            if (!curFiles.containsKey(fileName)) {
-                if (splitFiles.containsKey(fileName)) {
-                    if (!fileSHA1.equals(splitFiles.get(fileName))) {
-                        conflict(null, fileSHA1, fileName);
-                        conflictHappened = true;
-                    }
-                } else {
-                    File cwdFile = join(CWD, fileName);
-                    File givenFile = join(BLOB_DIR, fileSHA1);
-                    writeContents(cwdFile, readContents(givenFile));
-                    Staging stage = new Staging(false);
-                    stage.addFile(fileName);
-                }
-            }
-        }
-
-        // go through the curFiles
-        for (Map.Entry<String, String> entry : curFiles.entrySet()) {
-            String fileName = entry.getKey();
-            String fileSHA1 = entry.getValue();
-            File cwdFile = join(CWD, fileName);
-
-            if (givenFiles.containsKey(fileName)) {
-                if (!splitFiles.containsKey(fileName)) {
-                    if (!fileSHA1.equals(givenFiles.get(fileName))) {
-                        conflict(fileSHA1, givenFiles.get(fileName), fileName);
-                        conflictHappened = true;
-                    }
-                } else {
-                    if (curFiles.get(fileName).equals(splitFiles.get(fileName))) {
-                        String givenSHA1 = givenFiles.get(fileName);
-                        File givenFile = join(BLOB_DIR, givenSHA1);
-                        writeContents(cwdFile, readContents(givenFile));
-                        Staging stage = new Staging(false);
-                        stage.addFile(fileName);
-                    } else if (!fileSHA1.equals(givenFiles.get(fileName)) && !fileSHA1.equals(splitFiles.get(fileName))
-                                && !givenFiles.get(fileName).equals(splitFiles.get(fileName))) {
-                        conflict(fileSHA1, givenFiles.get(fileName), fileName);
-                        conflictHappened = true;
-                    }
-                }
-            } else {
-                if (splitFiles.containsKey(fileName)) {
-                    if (fileSHA1.equals(splitFiles.get(fileName))) {
-                        cwdFile.delete();
-                        Staging stage = new Staging(false);
-                        stage.removeFiles(fileName);
-                    } else {
-                        conflict(fileSHA1, givenFiles.get(fileName), fileName);
-                        conflictHappened = true;
-                    }
-                }
-            }
+        conflictHappened = goThroughGivenFiles(givenFiles, splitFiles, curFiles);
+        if (goThroughCurFiles(givenFiles, splitFiles, curFiles)) {
+            conflictHappened = true;
         }
 
         // create a commit
@@ -246,8 +189,7 @@ public class Branch implements Serializable {
      *  2. find the common commits
      *  3. select the commit which isn't the parent's commit from the common commits
      *  */
-    public static Commit getSplitPoint(Commit curCommit, Commit givenCommit)
-    {
+    public static Commit getSplitPoint(Commit curCommit, Commit givenCommit) {
         Set<String> curParents = getParentCommits(curCommit);
         Set<String> givenParents = getParentCommits(givenCommit);
         Set<String> commonParents = new HashSet<>(curParents);
@@ -300,7 +242,8 @@ public class Branch implements Serializable {
     }
 
     /** check the CWD has the untracked files that will be deleted or covered or not */
-    public static void checkUntrackedFiles(Map<String, String> curFiles, Map<String, String> givenFiles, Map<String, String> splitFiles) {
+    public static void checkUntrackedFiles(Map<String, String> curFiles,
+                                           Map<String, String> givenFiles, Map<String, String> splitFiles) {
         List<String> cwdFiles = plainFilenamesIn(CWD);
         if (cwdFiles != null) {
             for (String fileName : cwdFiles) {
@@ -311,7 +254,8 @@ public class Branch implements Serializable {
 
                 if (givenFiles.containsKey(fileName)) {
                     if (!givenFiles.get(fileName).equals(splitFiles.get(fileName))) {
-                        throw error("There is an untracked file in the way; delete it, or add and commit it first.");
+                        throw error("There is an untracked file in the way; " +
+                                            "delete it, or add and commit it first.");
                     }
                 }
             }
@@ -332,7 +276,6 @@ public class Branch implements Serializable {
         }
 
         String conflictContents = "<<<<<<< HEAD\n" + curContents  + "=======\n" + givenContents + ">>>>>>>\n";
-        byte[] fileContents = conflictContents.getBytes();
 
         File cwdFile = join(CWD, fileName);
         writeContents(cwdFile, conflictContents);
@@ -352,6 +295,76 @@ public class Branch implements Serializable {
             }
         }
         return branchExist;
+    }
+
+    /** go through the given files */
+    public static boolean goThroughGivenFiles(Map<String, String> givenFiles,
+                                    Map<String, String> splitFiles, Map<String, String> curFiles) {
+        boolean conflictHappened = false;
+        for (Map.Entry<String, String> entry : givenFiles.entrySet()) {
+            String fileName = entry.getKey();
+            String fileSHA1 = entry.getValue();
+
+            if (!curFiles.containsKey(fileName)) {
+                if (splitFiles.containsKey(fileName)) {
+                    if (!fileSHA1.equals(splitFiles.get(fileName))) {
+                        conflict(null, fileSHA1, fileName);
+                        conflictHappened = true;
+                    }
+                } else {
+                    File cwdFile = join(CWD, fileName);
+                    File givenFile = join(BLOB_DIR, fileSHA1);
+                    writeContents(cwdFile, readContents(givenFile));
+                    Staging stage = new Staging(false);
+                    stage.addFile(fileName);
+                }
+            }
+        }
+        return conflictHappened;
+    }
+
+    /** go through the cur files */
+    public static boolean goThroughCurFiles(Map<String, String> givenFiles,
+                                            Map<String, String> splitFiles, Map<String, String> curFiles) {
+        boolean conflictHappened = false;
+        for (Map.Entry<String, String> entry : curFiles.entrySet()) {
+            String fileName = entry.getKey();
+            String fileSHA1 = entry.getValue();
+            File cwdFile = join(CWD, fileName);
+
+            if (givenFiles.containsKey(fileName)) {
+                if (!splitFiles.containsKey(fileName)) {
+                    if (!fileSHA1.equals(givenFiles.get(fileName))) {
+                        conflict(fileSHA1, givenFiles.get(fileName), fileName);
+                        conflictHappened = true;
+                    }
+                } else {
+                    if (curFiles.get(fileName).equals(splitFiles.get(fileName))) {
+                        String givenSHA1 = givenFiles.get(fileName);
+                        File givenFile = join(BLOB_DIR, givenSHA1);
+                        writeContents(cwdFile, readContents(givenFile));
+                        Staging stage = new Staging(false);
+                        stage.addFile(fileName);
+                    } else if (!fileSHA1.equals(givenFiles.get(fileName)) && !fileSHA1.equals(splitFiles.get(fileName))
+                            && !givenFiles.get(fileName).equals(splitFiles.get(fileName))) {
+                        conflict(fileSHA1, givenFiles.get(fileName), fileName);
+                        conflictHappened = true;
+                    }
+                }
+            } else {
+                if (splitFiles.containsKey(fileName)) {
+                    if (fileSHA1.equals(splitFiles.get(fileName))) {
+                        cwdFile.delete();
+                        Staging stage = new Staging(false);
+                        stage.removeFiles(fileName);
+                    } else {
+                        conflict(fileSHA1, givenFiles.get(fileName), fileName);
+                        conflictHappened = true;
+                    }
+                }
+            }
+        }
+        return conflictHappened;
     }
 
     /** get this branch's head commit */

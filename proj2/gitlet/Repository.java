@@ -13,9 +13,9 @@ import static gitlet.Utils.*;
  *  Here is the repository structure:
  *  .gitlet/ -- folder contains all the Cache
  *      - commits/ -- folder contains all the commits SHA1 string
- *          - 3e8bf1d794ca2e9ef8a4007275acf3751c7170ff -- file contains the serializable commit with the SHA1 name
+ *          - 3e8bf1d794ca2e9ef8a4007275acf3751c7170ff -- file contains the serializable commit with the SHA1
  *      - blobs/ -- folder contains all the files with the SHA1 file name
- *          - a0da1ea5a15ab613bf9961fd86f010cf74c7ee48 -- file contains the raw file content with the SHA1 name
+ *          - a0da1ea5a15ab613bf9961fd86f010cf74c7ee48 -- file contains the raw file content with the SHA1
  *      - staging/ -- folder contains the addition and removal folder
  *      - branches/ -- folder contains the branches files
  *          - master -- file contains the branch file
@@ -98,9 +98,9 @@ public class Repository {
 
         // replace the file
         File file = join(BLOB_DIR, files.get(fileName));
-        File CWDFile = join(CWD, fileName);
+        File cwdFile = join(CWD, fileName);
         byte[] fileContents = readContents(file);
-        writeContents(CWDFile, fileContents);
+        writeContents(cwdFile, fileContents);
     }
 
     /** -- status
@@ -115,45 +115,18 @@ public class Repository {
      *  5. show the untracked files
      */
     public static void showStatus() {
-        // show the branch status
-        System.out.println("===" + " Branches " + "===");
-        String headBranchString = getHeadBranch().getName();
         List<String> allBranchesStrings = plainFilenamesIn(BRANCH_DIR);
-        ArrayList<String> branchList = new ArrayList<>(allBranchesStrings);
-        branchList.sort(Comparator.naturalOrder());
-        for (String branchName : branchList) {
-            if (branchName.equals(headBranchString)) {
-                System.out.println("*" + branchName);
-            } else {
-                System.out.println(branchName);
-            }
-        }
-        System.out.println();
+        // show the branch status
+        showBranchStatus(allBranchesStrings);
 
-        // show the stage files
-        // (Too shit to add comment)
-        ArrayList<String> addFilesList = new ArrayList<>();
-        System.out.println("===" + " Staged Files " + "===");
         Staging stage = new Staging(false);
         Map<String, String> addFiles = stage.viewAddFiles();
-        for (Map.Entry<String, String> entry : addFiles.entrySet()) {
-            addFilesList.add(entry.getKey());
-        }
-        addFilesList.sort(Comparator.naturalOrder());
-        for (String fileName : addFilesList) {
-            System.out.println(fileName);
-        }
-        System.out.println();
+        // show the stage files
+        showStageStatus(addFiles);
 
-        // show the removed files
-        System.out.println("===" + " Removed Files " + "===");
         Set<String> rmFilesNames = stage.viewRmFiles();
-        ArrayList<String> rmFilesList = new ArrayList<>(rmFilesNames);
-        rmFilesList.sort(Comparator.naturalOrder());
-        for (String fileName : rmFilesList) {
-            System.out.println(fileName);
-        }
-        System.out.println();
+        // show the removed files
+        showRemovedStatus(rmFilesNames);
 
         // show the modified but not staged files
         System.out.println("===" + " Modifications Not Staged For Commit " + "===");
@@ -166,15 +139,12 @@ public class Repository {
             String fileName = entry.getKey();
             String fileSHA1 = entry.getValue();
             File file = join(CWD, fileName);
-
             if (rmFilesNames.contains(fileName)) {
                 continue;
             }
-
             if (addFiles.containsKey(fileName)) {
                 continue;
             }
-
             if (!file.exists()) {
                 mNSFilesList.add(fileName);
                 deleted.put(fileName, true);
@@ -183,7 +153,6 @@ public class Repository {
                 deleted.put(fileName, false);
             }
         }
-
         // filter the addFiles
         for (Map.Entry<String, String> entry : addFiles.entrySet()) {
             String fileName = entry.getKey();
@@ -197,7 +166,6 @@ public class Repository {
                 deleted.put(fileName, false);
             }
         }
-
         mNSFilesList.sort(Comparator.naturalOrder());
         for (String fileName : mNSFilesList) {
             if (deleted.get(fileName)) {
@@ -207,7 +175,6 @@ public class Repository {
             }
         }
         System.out.println();
-
         // show the file is untracked
         System.out.println("===" + " Untracked Files " + "===");
         ArrayList<String> untrackedFilesList = new ArrayList<>();
@@ -215,8 +182,8 @@ public class Repository {
         if (fileNames != null) {
             for (String fileName : fileNames) {
                 if ((!addFiles.containsKey(fileName)
-                  && !trackedFiles.containsKey(fileName))
-                  || rmFilesNames.contains(fileName)) {
+                    && !trackedFiles.containsKey(fileName))
+                    || rmFilesNames.contains(fileName)) {
                     untrackedFilesList.add(fileName);
                 }
             }
@@ -226,10 +193,50 @@ public class Repository {
             System.out.println(fileName);
         }
         System.out.println();
-
     }
 
 
     /* Assisted Function */
+    // show branch status
+    private static void showBranchStatus(List<String> allBranchesStrings) {
+        System.out.println("===" + " Branches " + "===");
+        String headBranchString = getHeadBranch().getName();
+        ArrayList<String> branchList = new ArrayList<>(allBranchesStrings);
+        branchList.sort(Comparator.naturalOrder());
+        for (String branchName : branchList) {
+            if (branchName.equals(headBranchString)) {
+                System.out.println("*" + branchName);
+            } else {
+                System.out.println(branchName);
+            }
+        }
+        System.out.println();
+    }
 
+    // show stage status
+    private static void showStageStatus(Map<String, String> addFiles) {
+        ArrayList<String> addFilesList = new ArrayList<>();
+        System.out.println("===" + " Staged Files " + "===");
+        Staging stage = new Staging(false);
+        for (Map.Entry<String, String> entry : addFiles.entrySet()) {
+            addFilesList.add(entry.getKey());
+        }
+        addFilesList.sort(Comparator.naturalOrder());
+        for (String fileName : addFilesList) {
+            System.out.println(fileName);
+        }
+        System.out.println();
+    }
+
+    // show removed status
+    private static void showRemovedStatus(Set<String> rmFilesNames) {
+        System.out.println("===" + " Removed Files " + "===");
+        Staging stage = new Staging(false);
+        ArrayList<String> rmFilesList = new ArrayList<>(rmFilesNames);
+        rmFilesList.sort(Comparator.naturalOrder());
+        for (String fileName : rmFilesList) {
+            System.out.println(fileName);
+        }
+        System.out.println();
+    }
 }

@@ -5,7 +5,8 @@ import java.io.Serializable;
 import java.util.*;
 
 import static gitlet.Branch.getHeadBranch;
-import static gitlet.Main.*;
+import static gitlet.Main.ISINITED;
+import static gitlet.Main.MAXLEN;
 import static gitlet.Repository.*;
 import static gitlet.Utils.*;
 
@@ -40,7 +41,8 @@ public class Commit implements Serializable {
     private String secondParentCommitString = null;
 
     /** Commit's SHA1 */
-    private String SHA1 = "";
+    private String sha = "";
+
 
     /** -- commit [message]
      *  Creat a new commit
@@ -59,8 +61,8 @@ public class Commit implements Serializable {
         this.timestamp = timestamp;
         this.secondParentCommitString = secondParentCommitString;
 
-        if (!isInited) {
-            this.SHA1 = sha1(serialize(this));
+        if (!ISINITED) {
+            this.sha = sha1(serialize(this));
             saveCommit();
             return;
         }
@@ -79,7 +81,7 @@ public class Commit implements Serializable {
         this.blobs.putAll(stage.viewAddFiles());
 
         // update SHA1
-        this.SHA1 = sha1(serialize(this));
+        this.sha = sha1(serialize(this));
         saveCommit();
 
         // update branch
@@ -95,7 +97,7 @@ public class Commit implements Serializable {
 
     /** save the commit in the commit folder */
     public void saveCommit() {
-        File commitFile = join(COMMIT_DIR, this.SHA1);
+        File commitFile = join(COMMIT_DIR, this.sha);
         writeObject(commitFile, this);
     }
 
@@ -122,6 +124,12 @@ public class Commit implements Serializable {
     public static void printOutLog(Commit commit) {
         System.out.println("===");
         System.out.println("commit " + commit.getSHA1());
+
+        if (commit.hasSecondParentCommit()) {
+            String parentCommit = commit.getParentCommit().getSHA1().substring(0, 7);
+            String seconedParentCommit = commit.getSecondParentCommit().getSHA1().substring(0, 7);
+            System.out.println("Merge: " + parentCommit + " " + seconedParentCommit);
+        }
 
         Date date = commit.timestamp;
         Formatter dateString = new Formatter();
@@ -217,8 +225,7 @@ public class Commit implements Serializable {
      *  3. cover the files with the target commit
      *  4. update the stage
      * */
-    public static void updateWorkingDirectory(Commit currentCommit, Commit targetCommit)
-    {
+    public static void updateWorkingDirectory(Commit currentCommit, Commit targetCommit) {
         Map<String, String> curTrackedFiles = currentCommit.getBlobs();
         Map<String, String> tarTrackedFiles = targetCommit.getBlobs();
 
@@ -316,6 +323,6 @@ public class Commit implements Serializable {
 
     /** get this commit's SHA1 */
     public String getSHA1() {
-        return this.SHA1;
+        return this.sha;
     }
 }

@@ -47,63 +47,67 @@ public class Main {
      */
 
     /** judge whether it is inited */
-    public static boolean isInited = Repository.GITLET_DIR.exists();
+    public static final boolean ISINITED = Repository.GITLET_DIR.exists();
 
     /** SHA1's max length */
     public static final int MAXLEN = 40;
 
     public static void main(String[] args) {
-        if (args.length <= 0) {
-            throw error("Please enter a command.");
-        }
-        String firstArg = args[0];
-        if (!firstArg.equals("init") && !isInited) {
-            throw error("Not in an initialized Gitlet directory.");
-        } else if (firstArg.equals("init") && isInited) {
-            throw error("A Gitlet version-control system already exists in the current directory.");
-        }
-        switch (firstArg) {
-            case "init":
-                init(args);
-                break;
-            case "add":
-                add(args);
-                break;
-            case "commit":
-                commit(args);
-                break;
-            case "rm":
-                remove(args);
-                break;
-            case "log":
-                log(args);
-                break;
-            case "global-log":
-                globalLog(args);
-                break;
-            case "find":
-                find(args);
-                break;
-            case "checkout":
-                checkout(args);
-                break;
-            case "branch":
-                branch(args);
-                break;
-            case "status":
-                status(args);
-                break;
-            case "rm-branch":
-                rmBranch(args);
-                break;
-            case "reset":
-                reset(args);
-                break;
-            case "merge":
-                merge(args);
-                break;
-            default:
-                throw error("No command with that name exists.");
+        try {
+            if (args.length <= 0) {
+                throw error("Please enter a command.");
+            }
+            String firstArg = args[0];
+            if (!firstArg.equals("init") && !ISINITED) {
+                throw error("Not in an initialized Gitlet directory.");
+            } else if (firstArg.equals("init") && ISINITED) {
+                throw error("A Gitlet version-control system already exists in the current directory.");
+            }
+            switch (firstArg) {
+                case "init":
+                    init(args);
+                    break;
+                case "add":
+                    add(args);
+                    break;
+                case "commit":
+                    commit(args);
+                    break;
+                case "rm":
+                    remove(args);
+                    break;
+                case "log":
+                    log(args);
+                    break;
+                case "global-log":
+                    globalLog(args);
+                    break;
+                case "find":
+                    find(args);
+                    break;
+                case "checkout":
+                    checkout(args);
+                    break;
+                case "branch":
+                    branch(args);
+                    break;
+                case "status":
+                    status(args);
+                    break;
+                case "rm-branch":
+                    rmBranch(args);
+                    break;
+                case "reset":
+                    reset(args);
+                    break;
+                case "merge":
+                    merge(args);
+                    break;
+                default:
+                    throw error("No command with that name exists.");
+            }
+        } catch (GitletException e) {
+            System.out.println(e.getMessage());
         }
     }
 
@@ -224,10 +228,8 @@ public class Main {
         resetCommit(commitString);
     }
 
-    public static void merge(String[] args)
-    {
-        if (args.length == 1 || args.length > 2)
-        {
+    public static void merge(String[] args) {
+        if (args.length == 1 || args.length > 2) {
             throw error("Incorrect operands.");
         }
 
