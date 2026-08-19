@@ -44,6 +44,8 @@ public class Main {
      *  reset [commit id] -- reset the user dir to the commit
      *
      *  merge [branch name] -- merge the two branches
+     *
+     *  add-remote [remote name] [name of remote directory]/.gitlet
      */
 
     /** judge whether it is inited */
@@ -61,7 +63,8 @@ public class Main {
             if (!firstArg.equals("init") && !ISINITED) {
                 throw error("Not in an initialized Gitlet directory.");
             } else if (firstArg.equals("init") && ISINITED) {
-                throw error("A Gitlet version-control system already exists in the current directory.");
+                throw error("A Gitlet version-control system already "
+                        + "exists in the current directory.");
             }
             switch (firstArg) {
                 case "init":

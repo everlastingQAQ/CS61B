@@ -11,9 +11,6 @@ import static gitlet.Utils.*;
 /** Branch has:
  *  1. Branch name -> name
  *  2. Branch's head commit's SHA1 -> headCommitString
- *
- *  Methods:
- *  1.
  * */
 public class Branch implements Serializable {
     private String name;
@@ -95,7 +92,8 @@ public class Branch implements Serializable {
      *  3. check the branch name is head branch or not
      *  4. find the split commit
      *      - if lca commit is the given branch's head commit, print ... , return
-     *      - if lca commit is the current branch's head commit, reset the given commit, return
+     *      - if lca commit is the current branch's head commit:
+     *          reset the given commit, return
      *  5. check the CWD has the untracked files that will be deleted or covered or not
      *      - if it has, throw error
      *  6. go through the given commit's blobs:
@@ -104,7 +102,7 @@ public class Branch implements Serializable {
      *              - if the file is different from the split's file:
      *                  conflict happens
      *          - else the file doesn't exist in the split commit's blobs:
-     *              checkout the given's file to the CWD and add the file to the addition stage
+     *              checkout the given's file to CWD and add the file to the addition stage
      *  7. go through the current commit's blobs:
      *      - if the file exists in the given commit's blobs:
      *          - if the file doesn't exist in the split commit's blobs:
@@ -243,7 +241,7 @@ public class Branch implements Serializable {
 
     /** check the CWD has the untracked files that will be deleted or covered or not */
     public static void checkUntrackedFiles(Map<String, String> curFiles,
-                                           Map<String, String> givenFiles, Map<String, String> splitFiles) {
+                               Map<String, String> givenFiles, Map<String, String> splitFiles) {
         List<String> cwdFiles = plainFilenamesIn(CWD);
         if (cwdFiles != null) {
             for (String fileName : cwdFiles) {
@@ -254,8 +252,8 @@ public class Branch implements Serializable {
 
                 if (givenFiles.containsKey(fileName)) {
                     if (!givenFiles.get(fileName).equals(splitFiles.get(fileName))) {
-                        throw error("There is an untracked file in the way; " +
-                                            "delete it, or add and commit it first.");
+                        throw error("There is an untracked file in the way; "
+                                            + "delete it, or add and commit it first.");
                     }
                 }
             }
@@ -275,7 +273,8 @@ public class Branch implements Serializable {
             givenContents = readContentsAsString(givenFile);
         }
 
-        String conflictContents = "<<<<<<< HEAD\n" + curContents  + "=======\n" + givenContents + ">>>>>>>\n";
+        String conflictContents = "<<<<<<< HEAD\n" + curContents
+                                    + "=======\n" + givenContents + ">>>>>>>\n";
 
         File cwdFile = join(CWD, fileName);
         writeContents(cwdFile, conflictContents);
@@ -325,7 +324,7 @@ public class Branch implements Serializable {
 
     /** go through the cur files */
     public static boolean goThroughCurFiles(Map<String, String> givenFiles,
-                                            Map<String, String> splitFiles, Map<String, String> curFiles) {
+                                Map<String, String> splitFiles, Map<String, String> curFiles) {
         boolean conflictHappened = false;
         for (Map.Entry<String, String> entry : curFiles.entrySet()) {
             String fileName = entry.getKey();
@@ -345,7 +344,8 @@ public class Branch implements Serializable {
                         writeContents(cwdFile, readContents(givenFile));
                         Staging stage = new Staging(false);
                         stage.addFile(fileName);
-                    } else if (!fileSHA1.equals(givenFiles.get(fileName)) && !fileSHA1.equals(splitFiles.get(fileName))
+                    } else if (!fileSHA1.equals(givenFiles.get(fileName))
+                            && !fileSHA1.equals(splitFiles.get(fileName))
                             && !givenFiles.get(fileName).equals(splitFiles.get(fileName))) {
                         conflict(fileSHA1, givenFiles.get(fileName), fileName);
                         conflictHappened = true;

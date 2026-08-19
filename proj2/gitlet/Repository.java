@@ -13,9 +13,9 @@ import static gitlet.Utils.*;
  *  Here is the repository structure:
  *  .gitlet/ -- folder contains all the Cache
  *      - commits/ -- folder contains all the commits SHA1 string
- *          - 3e8bf1d794ca2e9ef8a4007275acf3751c7170ff -- file contains the serializable commit with the SHA1
+ *          - 3e8bf1d794ca2e9ef8a400 -- file contains the serializable commit with the SHA1
  *      - blobs/ -- folder contains all the files with the SHA1 file name
- *          - a0da1ea5a15ab613bf9961fd86f010cf74c7ee48 -- file contains the raw file content with the SHA1
+ *          - a0da1ea5a15ab613bf9961 -- file contains the raw file content with the SHA1
  *      - staging/ -- folder contains the addition and removal folder
  *      - branches/ -- folder contains the branches files
  *          - master -- file contains the branch file
@@ -72,7 +72,8 @@ public class Repository {
         initRepository();
 
         // create the commit
-        Commit firstCommit = new Commit("initial commit", new Date(0), null);
+        Commit firstCommit = new Commit("initial commit",
+                                new Date(0), null);
 
         // create the master branch
         Branch master = new Branch("master", firstCommit.getSHA1());
@@ -109,7 +110,8 @@ public class Repository {
      *  3. show the removed files
      *  4. show the modified but not staged files
      *      - The file is tracked by head commit but the file in the CWD changed or deleted
-     *      - The file is in the addFiles but is different from the CWD file, including the file was deleted
+     *      - The file is in the addFiles but is different from the CWD file,
+     *          including the file was deleted
      *      if the file was deleted, show (deleted)
      *      else show (modified)
      *  5. show the untracked files

@@ -20,7 +20,6 @@ import static gitlet.Utils.*;
  *
  *  Every Commit use these five things to create SHA1
  *
- *
  *  @author everlasting
  */
 public class Commit implements Serializable {
@@ -237,10 +236,12 @@ public class Commit implements Serializable {
 
         if (cwdFilesNames != null) {
             for (String cwdFileName : cwdFilesNames) {
-                boolean untracked = ((!curTrackedFiles.containsKey(cwdFileName) && !addFiles.containsKey(cwdFileName))
+                boolean untracked = ((!curTrackedFiles.containsKey(cwdFileName)
+                        && !addFiles.containsKey(cwdFileName))
                         || rmFiles.contains(cwdFileName));
                 if (untracked && tarTrackedFiles.containsKey(cwdFileName)) {
-                    throw error("There is an untracked file in the way; delete it, or add and commit it first.");
+                    throw error("There is an untracked file in the way; "
+                            + "delete it, or add and commit it first.");
                 }
             }
         }

@@ -8,11 +8,6 @@ import static gitlet.Commit.getHeadCommit;
 import static gitlet.Repository.*;
 import static gitlet.Utils.*;
 
-/** Staging is responsible for the add, rm command, and create a blob in the blob diary
- *
- *
- * */
-
 public class Staging implements Serializable {
 
     /** Key: file name, Value: file's SHA-1 */
@@ -37,7 +32,7 @@ public class Staging implements Serializable {
      *  2. check the file whether it has the same file in the previous addFiles
      *      - If it has the same file, return
      *  3. check the file whether it has the same file in the previous commit
-     *      - If it has the same file, check the addition whether it has the same file name, then return
+     *      - If it has the same file, check the addition whether it has the same file name
      *          - If the addFiles has the same file name, delete it, then return
      *  4. add the file in the addFiles
      *  5. add the file in the blobs with the SHA-1 file name
